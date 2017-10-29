@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>How to shoot a hit.</title>
+    <meta charset="utf-8">
+    <meta name="author" content="Giulio Valentino Dalla Riva" />
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# How to shoot a hit.
+## A hands on introduction to classification and decision trees
+### Giulio Valentino Dalla Riva
+### 2017/10/30
+
+---
+
+class: center
+
+
+
+
+**Today's Menu:**   
+--
+
+1.  Explain "Explaining"  
+--
+
+2.  Trees and Partitions
+--
+: rules and evaluation.  
+--
+
+    *  Impurity
+    *  Gain
+--
+
+3.  Start to code a decision tree fitter by scratch
+
+
+--
+
+**Goals:**  
+--
+
+1.  Tell what a "decision tree" is.
+
+--
+2.  Compute the impurity of a set (for a binary attribute).  
+
+--
+3.  Use the values of a variable to partition data.
+
+
+---
+
+# Money for movies
+
+--
+
+**Cost**:
+
+  $5.5e+08 for John Woo’s 2008 _Red Cliff_
+  
+  $1.2e+06 for Quentin Tarantino’s 1992 _Reservoir Dogs_
+  
+--
+
+**Revenue**:
+
+  $7.6e+08 for James Cameron's 2009 _Avatar_
+  
+  $2.7e+04 for Tony Scott's 2001 _Spy Game_
+
+???
+
+Setting the stage
+
+---
+class: middle
+
+# The $64k Question(s)
+
+1. What makes a hit?
+
+2. Will this movie be it?
+
+???
+
+Present the problem: two different questions
+
+---
+class: middle
+
+# The $64k Question(s)
+
+1. What makes a hit? &lt;- **Explain**
+
+2. Will this movie be it? &lt;- **Predict**
+
+???
+
+Two different tasks:
+discover and explain the classification rule for observed data points
+predict the classification of a new data point
+
+---
+
+Explaining (here) is
+--
+
+##growing a tree:
+
+1.  We ask true/false **questions** to the data. 
+2.  We **partition** the data based on the answers.
+3.  Repeat 1. and 2. on the parted data.
+
+--
+
+##Goal:
+*  partitions we can label with little uncertainty.
+
+---
+
+# Growing a coffe tree:
+
+---
+class: center
+
+If the problem is tough
+
+--
+
+# the tough ones get the data:
+
+
+```r
+HitOrFlop &lt;- "./HitOrFlop.Rds" %&gt;% read_rds()
+```
+
+--
+
+Movies (1916 to 2016) scraped from [IMDB](www.imdb.com).
+
+---
+
+### Hit or Flop
+
+
+
+```r
+HitOrFlop %&gt;% names()
+```
+
+```
+##  [1] "movie_title"    "title_year"     "gross"          "budget"        
+##  [5] "duration"       "country"        "language"       "director_name" 
+##  [9] "director_fl"    "actor_1_name"   "actor1_fl"      "actor_2_name"  
+## [13] "actor2_fl"      "cast_fl"        "genres"         "plot_keywords" 
+## [17] "color"          "aspect_ratio"   "poster_faces"   "content_rating"
+## [21] "gross_logratio" "HorF"
+```
+
+--
+
+`HorF`: movies are `Hits` if
+
+`$$\log\left(\frac{\mbox{gross}}{\mbox{budget}}\right) &gt; 0$$`
+
+or `Flops`.
+
+---
+class: centre
+
+### Before looking at the data:
+
+How "mixed" is it?
+
+
+```r
+HitOrFlop %&gt;% count(HorF) 
+```
+
+```
+## # A tibble: 2 x 2
+##     HorF     n
+##   &lt;fctr&gt; &lt;int&gt;
+## 1    Hit   584
+## 2   Flop   584
+```
+
+---
+
+## A balanced partition is mostly impure
+
+The Gini impurity, `\(I_G(s)\)`, of a partition `\(s\)` measures its mixing, and is defined as:
+
+$$I_G(s) = 1 - \sum_i^J p_i^2 $$
+were `\(p_i\)` is the frequency of elements of classes `\(i \in \{1, ..., J\}\)` in the partition `\(s\)`.
+
+--
+
+The impurity of a balanced binary partition is:
+
+
+```r
+#
+#
+#
+#
+```
+
+---
+
+# A fair coin flip.
+
+Without additional insight, how would we classify?
+
+--
+
+
+```r
+the_coin &lt;- c("Hit","Flop") %&gt;% as_factor()
+rand_classifier &lt;- sample(the_coin, 1168, replace = TRUE)
+```
+
+--
+
+How bad is that?
+
+
+```r
+HitOrFlop %&gt;%
+  mutate(classified=  rand_classifier) %&gt;% # We add our classification to the dataframe
+  count(classified, HorF) # and count the combination of classified and HorF
+```
+
+```
+## # A tibble: 4 x 3
+##   classified   HorF     n
+##       &lt;fctr&gt; &lt;fctr&gt; &lt;int&gt;
+## 1        Hit    Hit   309
+## 2        Hit   Flop   305
+## 3       Flop    Hit   275
+## 4       Flop   Flop   279
+```
+
+---
+
+### Fair coins are the worst
+
+The Gini impurity, , `\(I_G(s)\)`, measures the probability of misclassification in a partition:
+
+$$ I_G(s) = 1 - \sum_i^J p_i^2 =$$
+
+
+```r
+#
+#
+#
+#
+#
+#
+#
+```
+
+$$=\sum_i^J p_i (1 - p_i) $$
+
+--
+
+It assumes that the costs of missing a hit and running a flop are the same.
+
+
+---
+
+### How much is that mixed?
+
+1.  Classification error
+2.  Gini impurity
+3.  Entropy
+
+---
+
+### Binary Gini
+
+For two classes:
+
+
+```r
+gini_2 &lt;- function(class1,class2){
+  
+  tot_classes &lt;- class1 + class2 # tot of observations
+  p_1 &lt;- class1 / tot_classes # prob of labelling left
+  p_2 &lt;- class2 / tot_classes # prob of labelling right
+  I_G &lt;- 1 - ((p_1)^2) - ((p_2)^2) # Gini impurity
+  
+  return(I_G)
+}
+```
+
+---
+
+## The right questions
+
+A **question** is made of:
+
+1.  a **topic**
+2.  a **condition**
+
+---
+
+Choose the topic.
+
+--
+
+### Can it be the Facebook fame of the cast?
+
+--
+
+
+```r
+HitOrFlop %&gt;% 
+  ggplot(aes(x= cast_fl + 1, y= HorF, fill = HorF)) + scale_x_log10() +
+  geom_density_ridges(rel_min_height= 0.005) + theme_ridges()
+```
+
+&lt;img src="crt_files/figure-html/unnamed-chunk-10-1.svg" width="60%" style="display: block; margin: auto;" /&gt;
+
+---
+
+Choose the topic.
+
+--
+
+### Can it be the budget?
+
+--
+
+
+```r
+HorF_budget_p &lt;- HitOrFlop %&gt;%
+  ggplot(aes(x= budget, y= HorF, fill= HorF)) + scale_x_log10() +
+  geom_density_ridges(rel_min_height= 0.015) + theme_ridges()
+HorF_budget_p
+```
+
+&lt;img src="crt_files/figure-html/unnamed-chunk-11-1.svg" width="60%" style="display: block; margin: auto;" /&gt;
+
+
+---
+Choose the question.
+
+--
+
+### Budget less than $1e+07?
+
+--
+
+
+```r
+HorF_budget_p + geom_vline(xintercept = 1e+07)
+```
+
+&lt;img src="crt_files/figure-html/unnamed-chunk-12-1.svg" width="60%" style="display: block; margin: auto;" /&gt;
+
+---
+Choose the question.
+
+### Budget less than $1e+07?
+
+
+
+```r
+Part_1e07 &lt;- if_else(
+  HitOrFlop$budget &lt; 1e+07,  # The question
+  "l", # Yes -&gt; left partition
+  "r") # No -&gt; right partition
+```
+
+---
+
+### Good questions unmix
+
+A question is good if it reduces the misclassification.
+
+---
+
+### Mixed or Unmixed?
+
+With the $1e+07 budget threshold
+
+
+```r
+C &lt;- HitOrFlop %&gt;%
+  mutate(classified = Part_1e07) %&gt;%
+  count(classified, HorF) %T&gt;% print
+```
+
+```
+## # A tibble: 4 x 3
+##   classified   HorF     n
+##        &lt;chr&gt; &lt;fctr&gt; &lt;int&gt;
+## 1          l    Hit   331
+## 2          l   Flop   235
+## 3          r    Hit   253
+## 4          r   Flop   349
+```
+
+???
+
+It does look better.
+
+---
+
+### Gini gain
+
+The question `\(q\)` parted the observations into left, `\(l\)`, and right, `\(r\)`.
+
+We measure the difference between the Gini impurity before, `\(I_G(s_0)\)`, and after the partition.
+
+$$ \Delta I_G(q) = I_G(s_0) - \left(p_l I_G(l) + p_r I_G(r)\right) $$
+
+We weighted the Gini impurity of `\(l\)` and `\(r\)` by their relative frequency, `\(p_l\)` and `\(p_r\)`.
+
+---
+
+$$ \Delta I_G(q) = I_G(s_0) - \left(p_l I_G(l) + p_r I_G(r)\right) $$
+
+--
+
+
+```
+## # A tibble: 4 x 3
+##   classified   HorF     n
+##        &lt;chr&gt; &lt;fctr&gt; &lt;int&gt;
+## 1          l    Hit   331
+## 2          l   Flop   235
+## 3          r    Hit   253
+## 4          r   Flop   349
+```
+
+--
+
+
+```r
+tot &lt;- sum(C$n)
+p_l &lt;- (C$n[1] + C$n[2]) / tot  # rel frequency of "l"s
+p_r &lt;- (C$n[3] + C$n[4]) / tot # rel frequency of "r"s
+
+old_gini &lt;- gini_2((C$n[1] + C$n[3]), # Gini impurity before the partition
+                   (C$n[2] + C$n[4]))
+
+young_gini &lt;- p_l * gini_2(C$n[1], C$n[2]) + # Gini impurity for the "l" partition
+              p_r * gini_2(C$n[3], C$n[4]) # Gini impurity for the "l" partition
+
+old_gini - young_gini # difference
+```
+
+```
+## [1] 0.01352383
+```
+
+---
+
+### Was that the best question?
+
+That $1e+07 is completely arbitrary. Other ideas?
+
+---
+
+### Was that the best question?
+
+Let's turn the Gini impurity computation into function:
+
+$$ \Delta I_G(q) = I_G(s_0) - \left(p_l I_G(l) + p_r I_G(r)\right) $$
+
+--
+
+
+```r
+GiniGain &lt;- function(C){
+  C %&lt;&gt;% arrange(classified, HorF) # to assure the order in the "n" column
+  
+  tot &lt;- sum(C$n)
+  p_l &lt;- (C$n[1] + C$n[2]) / tot
+  p_r &lt;- (C$n[3] + C$n[4]) / tot
+
+  old_gini &lt;- gini_2((C$n[1] + C$n[3]), # I_G(s_0)
+                     (C$n[2] + C$n[4]))
+  
+  young_gini &lt;- p_l * gini_2(C$n[1], C$n[2]) + # p_l * I_G(l)
+                p_r * gini_2(C$n[3], C$n[4]) # p_r * I_G(r)
+  
+  DeltaGini &lt;-  old_gini - young_gini
+              
+  return(DeltaGini)
+}
+```
+
+---
+
+### $2e+07
+
+--
+
+
+```r
+C2 &lt;- HitOrFlop %&gt;%
+  mutate(classified = if_else(budget &lt; 2e+07, "l", "r")) %&gt;%
+  count(classified, HorF)
+GiniGain(C2)
+```
+
+```
+## [1] 0.0201613
+```
+
+--
+
+Better or worse?
+
+
+```r
+GiniGain(C2) &gt; GiniGain(C)
+```
+
+```
+## [1] TRUE
+```
+
+---
+
+### $3e+07
+
+--
+
+
+```r
+C3 &lt;- HitOrFlop %&gt;%
+  mutate(classified = if_else(budget &lt; 3e+07, "l", "r")) %&gt;%
+  count(classified, HorF)
+GiniGain(C3)
+```
+
+```
+## [1] 0.01512112
+```
+
+--
+
+Better or worse?
+
+
+```r
+GiniGain(C3) &gt; GiniGain(C2)
+```
+
+```
+## [1] FALSE
+```
+
+---
+
+### How many thresholds should we try?
+
+--
+
+Distinct values between in the overlap area (+ 2):
+
+--
+
+
+```r
+maxBudgetHits &lt;- filter(HitOrFlop, HorF == "Hit") %$% max(budget)
+minBudgetFlops &lt;- filter(HitOrFlop, HorF == "Flop") %$% min(budget)
+
+HorF_budget_p + geom_vline(xintercept = maxBudgetHits) +
+  geom_vline(xintercept = minBudgetFlops)
+```
+
+&lt;img src="crt_files/figure-html/unnamed-chunk-22-1.svg" width="60%" style="display: block; margin: auto;" /&gt;
+
+---
+
+Quite a lot, but the computation is light :-)
+
+--
+
+
+```r
+Overlap &lt;- distinct(HitOrFlop,budget) %&gt;% # Only the distinct values matter
+  filter(budget &gt; minBudgetFlops) %&gt;% # More than the littlest Flop
+  filter(budget &lt; maxBudgetHits) # Less than the biggest Hit
+```
+
+--
+
+
+```r
+thrs &lt;- Overlap$budget
+
+N &lt;- length(thrs)
+```
+
+---
+
+N = 208. Quite a lot, but the computation is light : we loop.
+
+
+```r
+Deltas &lt;- data_frame(Threshold = numeric(N), # initialize empty dataframe
+                    GiniGain = numeric(N))
+
+for(i in seq_len(N)){ # loop over all
+  thr &lt;- thrs[i] # Pick the threshold
+  Gain &lt;- HitOrFlop %&gt;%
+   mutate(classified = if_else(budget &lt; thr, "l", "r")) %&gt;% # Partition at that thrs
+   count(classified, HorF) %&gt;% GiniGain() # compute Gini gain
+  Deltas[i,1] &lt;- thr; Deltas[i,2] &lt;- Gain # store results.
+}
+```
+
+.footnote[Better implementation **ARE** possible.]
+
+---
+
+
+```r
+Deltas %&gt;%
+  qplot(Threshold, GiniGain, geom = "point", data = .) + scale_x_log10()
+```
+
+&lt;img src="crt_files/figure-html/unnamed-chunk-26-1.svg" width="60%" style="display: block; margin: auto;" /&gt;
+
+---
+
+For budget, the best partition is:
+
+```r
+Deltas %&gt;% top_n(1,GiniGain)
+```
+
+```
+## # A tibble: 1 x 2
+##   Threshold   GiniGain
+##       &lt;dbl&gt;      &lt;dbl&gt;
+## 1  19900000 0.02050546
+```
+
+--
+  
+
+```r
+HitOrFlop %&gt;%
+  mutate(classified = if_else(budget &lt; 19900000, "l", "r")) %&gt;%
+  count(classified, HorF)
+```
+
+```
+## # A tibble: 4 x 3
+##   classified   HorF     n
+##        &lt;chr&gt; &lt;fctr&gt; &lt;int&gt;
+## 1          l    Hit   465
+## 2          l   Flop   357
+## 3          r    Hit   119
+## 4          r   Flop   227
+```
+  
+
+--
+
+.footnote[We should do the same for **ALL** variables.]
+
+---
+
+### And again...
+
+--
+
+Iterative partitioning: let's consider **only** "l"s (or "r"s).
+
+--
+
+
+```r
+HitOrFlop_l &lt;- HitOrFlop %&gt;% filter(budget &gt;= 19900000)
+```
+
+---
+
+### Repeat 1. and 2.
+
+May it be the facebook fame of the cast??
+
+
+```r
+HitOrFlop_l %&gt;% 
+  ggplot(aes(y = HorF, x = cast_fl, fill = HorF)) +
+  geom_density_ridges(rel_min_height = 0.015) + scale_x_log10() + theme_ridges()
+```
+
+&lt;img src="crt_files/figure-html/unnamed-chunk-30-1.svg" width="60%" style="display: block; margin: auto;" /&gt;
+
+---
+
+### + 2
+
+minimum budget for flops threshold
+
+
+```r
+t_min_class &lt;- if_else(HitOrFlop$budget &lt; minBudgetFlops, "l", "r")
+
+HitOrFlop %&gt;%
+  mutate(classified = t_min_class) %&gt;%
+  count(classified, HorF) %&gt;%
+  rbind(list("l","Flop",0)) %&gt;% # We add the missing class
+  GiniGain()
+```
+
+```
+## [1] 0.01138354
+```
+
+
+---
+
+### + 2
+
+maximum budget for hits
+
+
+```r
+t_max_class &lt;- if_else(HitOrFlop$budget &lt;= maxBudgetHits, "l", "r")
+
+HitOrFlop %&gt;%
+  mutate(classified = t_max_class) %&gt;%
+  count(classified, HorF) %&gt;%
+  rbind(list("r","Hit",0)) %&gt;% # We add the missing class
+  GiniGain()
+```
+
+```
+## [1] 0.007384883
+```
+    </textarea>
+<script src="libs/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {window.dispatchEvent(new Event('resize'));});
+(function() {var d = document, s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler"); if (!r) return; s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }"; d.head.appendChild(s);})();</script>
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+  }
+});
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Save the Dinosaurs!</title>
+    <meta charset="utf-8">
+    <meta name="author" content="Giulio Valentino Dalla Riva" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Save the Dinosaurs!
+## A Data Science take on Biodiversity and its Fundaments
+### Giulio Valentino Dalla Riva
+### 2017/10/30
+
+---
+
+class: right, middle, inverse
+
+
+
+# Biodiversity!
+
+???
+
+We think we have a pretty good understanding of what biological diversity is. And we have in mind something like this:
+
+---
+class: inverse
+background-image: url(http://www.henrirousseau.net/images/famous/the-dream.jpg)
+background-size: contain
+
+???
+
+Image credit: Henry Rousseau, The Dream (1910)
+
+Sure, we may be missing a lot in that picture, little stuff like bacteria or more boring stuff like species that do not strike the eye. But, that's what we think.
+
+---
+class: left, middle, inverse
+
+# Biodiversity?
+
+--
+
+## Measuring means caring.
+
+???
+
+The problem is, that painting is not easy to explain without running in circles. Why do we like biodiversity? 'Cause we like variety.
+
+Moreover, that painting does not suggest an easy way of measuring biodiversity. Is it the number of species? Their morphological diversity? The presence of astounding unique traits? The intricacy of their ecological relationship? Their value to us as human beings? Their unique (and partly shared) histories? Or even something else?
+
+---
+class: center, inverse, bottom
+
+&gt; ### What's So Good About Biodiversity?
+
+--
+
+&gt; could not find a single argument that does not have serious logical flaws, crippling qualifications, or indefensible assumptions&lt;sup&gt;[1]&lt;/sup&gt;
+&gt;
+&gt; Donald S. Maier
+
+--
+
+### Then, let's get to work!
+
+???
+
+Philosophers and biologist have been asking it. An informative review and discussion of various ideas is offered by Donald S. Maier.
+
+Maier Concludes that it's all blah blah. All the common definition, lacking a clear and solid fundament in data and science, are fragile, void.
+
+Yet, lack of evidence is not evidence of lack.
+
+---
+class: left, middle, inverse
+
+## What is biodiversity?
+
+--
+
+### Evolution 
+--
++ Ecology 
+--
++ us
+
+---
+class: right, bottom, inverse
+background-image: url(./Images/tr_hall_ext.png)
+background-size: contain
+
+.pull-right[sDiv Leipzig (DE) group on biodiversity, with Caroline Tucker (UNC, USA), Richard Grenyer (Oxford), Marten Winter  (iDiv Leipzige, DE), ...]
+
+---
+class: left, middle, inverse
+background-image: url(./Images/tr_hall.png)
+background-size: contain
+
+---
+class: left, middle, inverse
+background-image: url(./Images/tr_augmented-i.png)
+background-size: contain
+
+---
+class: left, middle, inverse
+background-image: url(./Images/tr_augmented_blank.png)
+background-size: contain
+
+---
+class: center, bottom, inverse
+![](./Images/tr_phylo_trait.jpg)
+
+.footnote[Florent Mazel, Matt Pennell (UBC), Arne Mooers (SFU).]
+
+---
+class: center, inverse
+
+### What is Phylogenetic Diversity?
+
+--
+
+&lt;img src="Images/pd_min_span_tree_crop.png" width="400"&gt;
+
+--
+
+`\(PD(\{A,B, C, D\}) = 5+1+1+3+2+2=14\)`
+
+--
+
+`\(PD(\{A,B\}) = 5 + 1 + 1 = 7\)`
+
+`\(PD(\{A,C\}) = ... = PD(\{B,D\}) = 5 + 1 + 3 + 2 = 11\)`
+
+---
+class: center, inverse
+
+### What is Trait Diversity?
+
+--
+
+&lt;img src="Images/hull.png" width="400"&gt;
+
+--
+
+.footnote[ _Richness_, _Dispersion_;  
+_Functional_, ...,]
+
+---
+class: center, middle, inverse
+
+### High PD =&gt; High TD
+
+--
+
+Or, at least, not so little.
+
+--
+
+&gt; _unique beasts are strange indeed_
+
+---
+class: middle, center, inverse
+
+**_Biological_ notion**
+
+--
+
+Set of taxa that maximise Phylogenetic Diversity will have more diverse traits than random.
+
+
+---
+class: center, middle, inverse
+
+
+### Step 1: Translate.
+
+We need three things 
+--
+plus one:
+
+--
+
+0. A way of measuring Phylogenetic Diversity.
+
+--
+
+1. A way of measuring Trait Diversity.
+
+--
+
+2. A model for growing traits on trees.
+
+--
+
+3. Two different sampling techniques.
+
+---
+class: center, middle, inverse
+
+### 1.2.   Measuring TD
+
+--
+
+Traits are points in a `\(N\)` dimensional metric space.
+
+--
+
+A set of species define a convex hull. If it is not degenere we can measure its volume.
+
+--
+
+.footnote[Computing hulls is easy.  
+Measuring volumes is heavy.  
+We also considered alternative definitions.]
+
+---
+class: center, middle, inverse
+
+### 1.2. Measuring TD
+
+#### Is that a little or a lot?
+
+--
+
+Getting the max.  
+
+--
+
+That's tougher. 
+--
+More about it later (maybe).
+
+---
+class: center, middle, inverse
+
+### 1.3. Growing Traits on Trees
+
+--
+
+***How does evolution work?***
+
+--
+
+Randomly 
+--
+(mostly).
+
+--
+
+***What looks like a random process?***
+
+--
+
+Brownian motion
+--
+&lt;sup&gt;[1]&lt;/sup&gt;
+
+.footnote[Growing traits as BM goes back to the '50s with _Cavalli Sforza_ &amp; _Edwards_. Got grip thanks to _Felsenstein_ in the '80s. A lot of inertia there.]
+
+---
+class: center, inverse
+
+### 1.3. Growing Traits on Trees
+
+#### simple Brownian Motion
+
+`$$X_i(t + \delta t) - X_i(t) \sim \delta t \ \mathcal{N}(0,\sigma)$$`
+
+--
+
+`\(\sigma\)` is the _speed_ of the evolutionary process.
+
+--
+
+.footnote[Correlation between traits on a lineage is possible.]
+
+---
+class: center, inverse
+
+### 1.3. Growing Traits on Trees
+
+#### Branching Brownian Motion
+
+`$$X_i(t + \delta t) - X_i(t) \sim \delta t \ \mathcal{N}(0,\sigma(t))$$`
+
+--
+
+At the time `\(s\)` of a branching
+
+`$$X_l(s) = X_r(s) = X_m(s) \\ \sigma_l(s) = \sigma_r(s) = \sigma_m(s)$$`
+
+--
+
+with
+
+`$$\sigma_i(t) = \sigma(t,i)$$`
+e.g., `\(\sigma(t,i) = \sigma(t,a(i))\)` where `\(a(i)\)` is the time since birth of the lineage `\(i\)`.
+
+--
+
+.footnote[Correlation between traits on a lineage is possible. Lineages do not see each other.]
+
+---
+class: center, inverse
+
+### 1.4. Picking kiwis from the tree
+
+---
+class: center, inverse
+
+### 1.4. Picking ~~kiwis~~ leaves from the tree
+
+Given a tree with `\(M\)` leaves, and a target of `\(N\)` leaves
+
+--
+
+1.  _Random_: Select any set of `\(N\)` leaves with uniform probability.
+
+--
+
+2.  _Max PD_: Select any set of `\(N\)` leaves with uniform probability from the family of `\(N\)`-leaf sets maximising Phylogenetic Diversity.
+
+--
+
+3.  _Max TD_: Select any set of `\(N\)` species with uniform probability from the family of `\(N\)`-species sets maximising Convex Hull Volume.
+--
+&lt;sup&gt;[1]&lt;/sup&gt;
+
+.footnote[
+[1] It really doesn't matter, as long as we can get the max volume.
+]
+
+---
+class: center, inverse
+
+### 1.4. Picking ~~kiwis~~ leaves from the tree
+
+Given a tree with `\(M\)` leaves, and a target of `\(N\)` leaves
+
+.footnote[[1] It's `\(O(M\log{N})\)`.]
+
+2. _Max PD_ &lt;- Getting **a** set with Max PD is easy&lt;sup&gt;[1]&lt;/sup&gt; 
+--
+(we go greedy, thanks Mike) 
+--
+, to get **many** sets with Max PD is not harder, 
+--
+getting them **all**...
+
+---
+class: inverse, middle, center
+
+### Step 2: Prove (or not).
+
+**_Biological_ notion:** Set of taxa that maximise Phylogenetic Diversity will have more diverse traits than random.  
+
+--
+
+**Theorem:**
+*  Let `\(\{\tau_i,X_{j}(\tau_i)\}\)` be a family of random trees&lt;sup&gt;[1]&lt;/sup&gt; `\(\tau_i\)` and traits `\(X_{j}\)` grown on those trees according to a BBM process with evolutionary speed `\(\sigma\)`.
+*  Let `\(S_P\)` be a set of leaves `\(\tau_i\)` sampled from a tree according to a stratedy `\(P\)`.
+*  Let `\(TD(S_P)\)` be the volume of the convex hull enclosing the traits of the leaves in `\(S_P\)`.
+
+=&gt; Then the expected value&lt;sup&gt;[2]&lt;/sup&gt; of `\(TD(S_{maxPD})\)` is greater or equal to the expected value of `\(TD(S_{Random})\)`.
+
+.footnote[
+[1] Binary, ultrametric, costant rate birth-death trees.  
+[2] The expectation is considered over the trees, the traits and the sampling.]
+
+---
+class: inverse, middle, center
+
+### Step 2: Prove (or not).
+
+If the BBM histories share a common regime
+
+--
+
+`\(\sigma(t,i) = \sigma(t,j) \qquad \forall t, i, j\)`:
+
+--
+
+![Check.](Images/check.png)
+
+--
+
+Higher PD =&gt; Higher variance =&gt; Higher TD.
+
+--
+
+And holds for a weaker request on `\(\sigma\)`s, i.e., all sampled from same distribution.
+
+---
+class: inverse, bottom, center
+
+### Step 2: Prove (or not).
+
+We verified it. 
+
+.
+
+--
+
+.
+
+Nothing to see here, please go home.
+
+.
+
+--
+
+.
+
+And that's where the story usually ends.  
+
+.
+
+--
+
+.
+
+But...
+
+
+---
+class: inverse, center
+
+### Step 2: Prove (or not).
+#### What if
+
+we consider a slightly more general BBM model:
+
+--
+
+`\(\sigma(i,t) = l(i)^{\chi}\)`?  
+
+where `\(l(i)\)` is the length of branch `\(i\)`?
+
+--
+
+e.g., what if lineages that split frequently have a higher evolutionary speed?
+
+--
+
+.footnote[_Ecological radiations_]
+
+--
+
+Then, it depends.
+
+---
+class: inverse
+background-image: url(Images/PD_redblue-i.png)
+background-size: contain
+
+--
+
+It depends on `\(\chi\)`  
+--
+and the shape of the tree.  
+
+--
+
+.footnote[It's the same for Rao's entropy, ...]
+
+---
+class: inverse
+background-image: url(Images/PD_redblue-i.png)
+background-size: contain
+
+
+
+It depends on `\(\chi\)` and the shape of the tree.  
+
+.footnote[And it does NOT depend on (lack of) phylogenetic signal.]
+
+---
+class: center, inverse
+
+### Step 3: Assess
+
+--
+
+#### how does evolution _really_ work?   
+
+.footnote[..., Sandra Diaz (Universidad Nacional de Córdoba, Argentin), David Mouillot (Australian Research Council Centre of Excellence for Coral Reef Studies), William Pearse (Utah State University), ...]
+---
+class: center, inverse
+
+#### Step 3: how does evolution _really_ work?  
+It depends.  
+--
+
+&lt;img src="Images/Mammals_clades_redblue-i.png" height="450"&gt;
+
+Mammal clades
+
+---
+class: center, inverse
+
+#### Step 3: how does evolution _really_ work?  
+It depends.  
+--
+
+&lt;img src="Images/Birds_clades_redblue-i.png" height="450"&gt;
+
+Bird clades
+
+---
+class: center, middle, inverse
+
+#### Step 3: how does evolution _really_ work?  
+
+It depends.                  
+![](Images/Mammals_world_redblue-i.png)
+
+Mammals
+
+---
+class: center, middle, inverse
+
+#### Step 3: how does evolution _really_ work?  
+
+It depends.                  
+![](Images/Birds_world_redblue-i.png)
+
+Birds
+
+---
+class: center, middle, inverse
+
+#### Step 3: how does evolution _really_ work?  
+
+It depends.                  
+![](Images/Fish_world_redblue-i.png)
+
+Fish
+
+---
+class: center, middle, inverse
+
+It is still very hard to put that data together.
+
+---
+class: inverse
+
+### Bottom line:
+
+#### We take one of those arrows
+--
+, (1) translate it into a rigorous prediction
+--
+, (2) explore the parameters that make it true or false
+--
+, and (3) assess its empirical support.
+
+---
+class: center, middle, inverse
+
+## You promised the dinosaurs!
+
+--
+
+Arrow "h" here:
+
+---
+class: left, middle, inverse
+background-image: url(./Images/tr_augmented-i.png)
+background-size: contain
+
+
+---
+class: inverse, middle
+
+**_Biological_ notion:** (Phylogenetic) diversity begets diversity
+--
+, higher evolutionary potential / lower clade extinction risk.
+
+---
+class: left, middle, inverse
+background-image: url(./Images/dinosaurs-i.png)
+background-size: contain
+
+---
+class: left, middle, inverse
+background-image: url(./Images/dinosaurs-i-p.png)
+background-size: contain
+
+---
+class: left, middle, inverse
+background-image: url(./Images/dinosaurs-i-p-f.png)
+background-size: contain
+
+---
+class: left, middle, inverse
+background-image: url(./Images/dinosaurs-i-p-ff.png)
+background-size: contain
+
+---
+class: inverse
+
+### Step 3: Assess.
+
+--
+
+#### 3.1 Gather the data.
+
+--
+
+Highly defined dated phylogenies for:
+*   Canids
+*   Foramineferas
+*   Ruminants
+*   Horses
+*   Dinosaurs
+
+--
+
+It took *a lot* of paleontologists to put those together.
+
+.footnote[Juan Cantalapiedra (Museum für Naturkunde - Berlin), Tracy Aze (University of Leeds, UK), Marc W Cadotte (University of Toronto), Danwei Huang (National University of Singapore), Chelsea Chisholm (University of Copenhagen), ...]
+---
+class: inverse
+
+### Step 3: Assess.
+
+
+#### 3.2 Ask the dogs
+
+
+![](Images/LTTcanidsanimated-i.gif)
+
+---
+class: inverse
+
+### Step 3: Assess.
+
+
+#### 3.2 Ask the forams
+
+
+![](Images/LTTformasanimated-i.gif)
+
+---
+class: inverse
+
+### Step 3: Assess.
+
+
+#### 3.2 Ask the ruminants
+
+
+![](Images/LTTruminantsanimated-i.gif)
+
+---
+class: inverse
+
+### Step 3: Assess.
+
+
+#### 3.2 Ask the horses
+
+
+![](./Images/LTThorsesanimated-i.gif)
+
+---
+class: inverse
+
+### Step 3: Assess.
+
+
+#### 3.2 Ask the dogs, forams, ruminants, or horses:
+
+--
+
+#### they all say **no**.
+
+---
+class: inverse
+
+### Step 3: Assess.
+
+
+#### 3.2 Ask the dinos
+
+
+![](Images/LTTdinosanimated-i.gif)
+
+---
+class: inverse
+
+### Step 2: Prove (or not).
+
+
+#### 3.2 Ask the dinos: why is that?
+
+--
+
+We don't know (yet).
+
+---
+class: left, middle, inverse
+background-image: url(./Images/LTT-area-i.png)
+background-size: contain
+
+---
+class: inverse
+
+### Step 2: Prove (or not).
+
+
+#### 3.2 Ask the dinos: why is that?
+
+--
+
+We need more data and more theory.  
+--
+It's coming.
+
+--
+
+..
+
+---
+class: inverse, middle, center
+
+## We could have saved the dinosaurs!
+    </textarea>
+<script src="libs/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": true
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {window.dispatchEvent(new Event('resize'));});
+(function() {var d = document, s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler"); if (!r) return; s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }"; d.head.appendChild(s);})();</script>
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+  }
+});
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
